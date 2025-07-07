@@ -1,67 +1,64 @@
-import { getUser } from "../../appwrite/auth";
+import { getAllUsers, getUser } from "../../appwrite/auth";
+import {
+  getTripsByTravelStyle,
+  getUserGrowthPerDay,
+  getUsersAndTripsStats,
+} from "../../appwrite/dashboard";
+import { getAllTrips } from "../../appwrite/trips";
+import { BarChartData } from "../../components/bar-chart";
 import Header from "../../components/Header";
 import StatsCard from "../../components/StatsCard";
 import TripCard from "../../components/TripCard";
 import type { Route } from "./+types/dashboard";
 
-const dashboardStats = {
-  totalUsers: 12450,
-  userJoined: {
-    currentMonth: 1245,
-    lastMonth: 1245,
-  },
-  totalTrips: 3210,
-  tripsCreated: { currentMonth: 32, lastMonth: 345 },
-  userRole: { total: 62, currentMonth: 25, lastMonth: 12 },
+export const clientLoader = async () => {
+  const [
+    user,
+    dashboardStats,
+    trips,
+    userGrowthPerDay,
+    tripsByTravelStyle,
+    allUsers,
+  ] = await Promise.all([
+    getUser(),
+    getUsersAndTripsStats(),
+    getAllTrips(4, 0),
+    getUserGrowthPerDay(),
+    getTripsByTravelStyle(),
+    getAllUsers(4, 0),
+  ]);
+
+  const mappedUsers: UsersItineraryCount[] = allUsers.users.map((user) => ({
+    imageUrl: user.imageUrl,
+    name: user.name,
+    count: user.itineraryCount,
+  }));
+
+  return {
+    user,
+    dashboardStats,
+    mappedUsers,
+    userGrowthPerDay,
+    tripsByTravelStyle,
+    allTrips: trips.allTrips?.map(({ $id, tripDetail, imagesUrls }) => ({
+      ...JSON.parse(tripDetail),
+      id: $id,
+      imageUrls: imagesUrls ?? [],
+    })),
+  };
 };
 
-const Alltrips = [
-  {
-    id: "1",
-    name: "Trip to Lagos",
-    imageUrls: ["/assets/images/sample.jpeg"],
-    itinerary: [{ location: "New York" }],
-    tags: ["Adventure", "Culture", "Relaxation"],
-    travelStyle: "Solo",
-    estimatedPrice: "$1,000",
-  },
-  {
-    id: "2",
-    name: "Trip to Lagos",
-    imageUrls: ["/assets/images/sample.jpeg"],
-    itinerary: [{ location: "New York" }],
-    tags: ["Adventure", "Culture", "Relaxation"],
-    travelStyle: "Solo",
-    estimatedPrice: "$1,000",
-  },
-  {
-    id: "3",
-    name: "Trip to Lagos",
-    imageUrls: ["/assets/images/sample.jpeg"],
-    itinerary: [{ location: "New York" }],
-    tags: ["Adventure", "Culture", "Relaxation"],
-    travelStyle: "Solo",
-    estimatedPrice: "$1,000",
-  },
-  {
-    id: "4",
-    name: "Trip to Lagos",
-    imageUrls: ["/assets/images/sample.jpeg"],
-    itinerary: [{ location: "New York" }],
-    tags: ["Adventure", "Culture", "Relaxation"],
-    travelStyle: "Solo",
-    estimatedPrice: "$1,000",
-  },
-];
+const dashboard = ({ loaderData }: Route.ComponentProps) => {
+  console.log(loaderData);
 
-export const clientLoader = async () => await getUser();
-
-const dashboard = ({ loaderData } : Route.ComponentProps ) => {
-  const { totalUsers, userJoined, totalTrips, tripsCreated, userRole } =
+  const { user, dashboardStats, allTrips, userGrowthPerDay } = loaderData as {
+    user: User | null;
+    dashboardStats: DashboardStats;
+    allTrips: Trip[];
+    userGrowthPerDay: { count: number; day: string }[];
+  };
+  const { totalUsers, usersJoined, totalTrips, tripsCreated, userRole } =
     dashboardStats;
-
-  const user = loaderData as User | null;
-
   return (
     <main className="all-users wrapper">
       <Header
@@ -73,8 +70,8 @@ const dashboard = ({ loaderData } : Route.ComponentProps ) => {
           <StatsCard
             headerTitle="Total Users"
             total={totalUsers}
-            currentMonthCount={userJoined.currentMonth}
-            lastMonthCount={userJoined.lastMonth}
+            currentMonthCount={usersJoined.currentMonth}
+            lastMonthCount={usersJoined.lastMonth}
           />
           <StatsCard
             headerTitle="Total Trips"
@@ -91,22 +88,35 @@ const dashboard = ({ loaderData } : Route.ComponentProps ) => {
         </div>
       </section>
       <section className="container">
-        <h1 className="text-xl font-semibold text-dark-100">Created Trips</h1>
+        <h1 className="text-xl font-semibold text-dark-100 mb-4">
+          Created Trips
+        </h1>
         <div className="trip-grid">
-          {Alltrips.slice(0, 4).map(
-            ({ id, name, imageUrls, itinerary, tags, estimatedPrice }) => (
+          {allTrips.map(
+            ({
+              id,
+              name,
+              imageUrls,
+              itinerary,
+              travelStyle,
+              interests,
+              estimatedPrice,
+            }) => (
               <TripCard
                 key={id}
                 id={id.toString()}
                 name={name}
                 imageUrl={imageUrls[0]}
                 location={itinerary?.[0]?.location ?? ""}
-                tags={tags}
+                tags={[interests, travelStyle]}
                 price={estimatedPrice}
               />
             )
           )}
         </div>
+      </section>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <BarChartData userGrowth={userGrowthPerDay} />
       </section>
     </main>
   );

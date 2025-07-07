@@ -7,6 +7,7 @@ import { comboBoxItems, selectItems } from "../../constants";
 import { cn, formatKey } from "../../lib/utils";
 import type { Route } from "./+types/create-trip";
 import { account } from "../../appwrite/client";
+import { useNavigate } from "react-router";
 
 export const loader = async () => {
   const response = await fetch(
@@ -33,6 +34,7 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
     duration: 0,
     groupType: "",
   });
+  const navigate = useNavigate();
 
   const countries = loaderData as Country[];
 
@@ -70,9 +72,28 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
     }
 
     try {
-      console.log('user', user);
-      console.log('trip', trip);
+      const response = await fetch("/api/create-trip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          country: trip.country,
+          numberOfDays: trip.duration,
+          travelStyle: trip.travelStyle,
+          interests: trip.interest,
+          budget: trip.budget,
+          groupType: trip.groupType,
+          userId: user.$id,
+        }),
+      });
       
+      const result: CreateTripResponse = await response.json();
+      
+      if (result?.id) navigate("/trips/" + result.id)
+
+      else console.log("Failed to create trip");
+
     } catch (error) {
       console.log("handleSubmit", error);
       return;

@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { data, type ActionFunctionArgs } from "react-router";
-import { parseMarkdownToJson } from "../../lib/utils";
-import { appwriteConfig, database } from "../../appwrite/client";
 import { ID } from "appwrite";
+import { data, type ActionFunctionArgs } from "react-router";
+import { appwriteConfig, database } from "../../appwrite/client";
+import { parseMarkdownToJson } from "../../lib/utils";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const {
@@ -76,8 +76,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       `https://api.unsplash.com/search/photos?query=${country} ${interests} ${travelStyle}&client_id=${unsplashApiKey}`
     );
 
-    const imagesUrls = (await imageResponse.json()).results.slice(0, 3)
-    .map((image: any) => image.urls.regular || null);
+    const imagesUrls = (await imageResponse.json()).results
+      .slice(0, 3)
+      .map((image: any) => image.urls.regular || null);
 
     const result = await database.createDocument(
       appwriteConfig.databaseId,
@@ -87,12 +88,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         tripDetail: JSON.stringify(trip),
         createdAt: new Date().toISOString(),
         imagesUrls,
-        userId
+        userId,
       }
     );
 
     return data({ id: result.$id });
-
   } catch (error) {
     console.log("creating trip", error);
   }

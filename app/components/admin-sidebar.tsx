@@ -62,6 +62,8 @@ const items = [
 export function AdminSidebar() {
   const location = useLocation();
   const user = useLoaderData();
+  console.log("user", user);
+  
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -159,11 +161,11 @@ export function AdminSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
                   <img
-                    src={user.imageUrl}
+                    src={user?.imageUrl ?? "images/avatar.png"}
                     className="w-8 h-8 rounded-xl"
                     alt=""
                   />{" "}
-                  {user.name}
+                  {user?.name}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

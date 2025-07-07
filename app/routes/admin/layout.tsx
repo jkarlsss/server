@@ -35,7 +35,7 @@ const AdminLayout = () => {
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <main className="w-full h-full bg-yellow-50 pt-5">
+      <main className="w-full h-full pt-5">
         <SidebarTrigger className="md:hidden" />
         <Outlet />
       </main>

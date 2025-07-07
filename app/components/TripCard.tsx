@@ -1,7 +1,6 @@
+import { BadgeCheckIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Badge } from "./ui/badge";
-import { BadgeCheckIcon } from "lucide-react";
-import { cn } from "../lib/utils";
 
 const TripCard = ({
   id,
@@ -26,7 +25,9 @@ const TripCard = ({
       <article>
         <h2>{name}</h2>
         <figure>
-          <img src="/assets/icons/location-mark.svg" alt="Location"
+          <img
+            src="/assets/icons/location-mark.svg"
+            alt="Location"
             className="size-4"
           />
           <figcaption>{location}</figcaption>
@@ -34,7 +35,14 @@ const TripCard = ({
       </article>
       <div className="mt-5 pl-[18px] pr-3.5 pb-5">
         {tags.map((tag, index) => (
-          <Badge variant={index === 0 ? "outline" : "secondary"} key={tag}>
+          <Badge
+            className={
+              index === 0
+                ? "!bg-red-50 !text-red-600"
+                : "!bg-green-50 !text-green-600"
+            }
+            key={tag}
+          >
             <BadgeCheckIcon className="size-4" />
             {tag}
           </Badge>
